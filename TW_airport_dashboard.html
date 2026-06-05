@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台灣機場運量統計儀表板</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root {
+  --primary: #1d4ed8;
+  --primary-600: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-bg: #eff6ff;
+  --primary-border: #bfdbfe;
+  --secondary: #475569;
+  --secondary-bg: #f1f5f9;
+  --accent: #0ea5e9;
+  --surface: #ffffff;
+  --bg: #f0f4f8;
+  --text: #1e293b;
+  --text-2: #64748b;
+  --text-3: #94a3b8;
+  --border: #e2e8f0;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow: 0 4px 6px -1px rgba(0,0,0,.08), 0 2px 4px -2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.05);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: 'Noto Sans TC', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* HEADER */
+#app-header{background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 60%,#2563eb 100%);color:#fff;padding:0 24px;box-shadow:0 2px 8px rgba(0,0,0,.2);position:sticky;top:0;z-index:100}
+.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
+.header-title{display:flex;align-items:center;gap:10px}
+.header-title svg{flex-shrink:0}
+.header-title h1{font-size:17px;font-weight:700;white-space:nowrap}
+.header-title span{font-size:12px;opacity:.75;display:none}
+.header-meta{font-size:11px;opacity:.7;white-space:nowrap}
+@media(min-width:600px){.header-title span{display:block}}
+
+/* NAV TABS */
+#nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:60px;z-index:99;box-shadow:var(--shadow-sm)}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;padding:0 24px}
+.nav-tab{padding:14px 20px;font-size:14px;font-weight:500;color:var(--text-2);border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;user-select:none}
+.nav-tab:hover{color:var(--primary);background:var(--primary-bg)}
+.nav-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700}
+
+/* MAIN CONTENT */
+main{max-width:1400px;margin:0 auto;padding:24px 20px;display:flex;flex-direction:column;gap:24px}
+.page{display:none;flex-direction:column;gap:24px}
+.page.active{display:flex}
+
+/* SECTION */
+.section-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.section-subtitle{font-size:12px;color:var(--text-2);margin-bottom:16px}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border);padding:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.card-title{font-size:14px;font-weight:600;color:var(--text)}
+.card-subtitle{font-size:11px;color:var(--text-3)}
+
+/* SUMMARY CARDS */
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.summary-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px 24px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.summary-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.summary-card:nth-child(1)::before{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
+.summary-card:nth-child(2)::before{background:linear-gradient(90deg,#0891b2,#22d3ee)}
+.summary-card:nth-child(3)::before{background:linear-gradient(90deg,#059669,#34d399)}
+.summary-label{font-size:12px;color:var(--text-2);font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.summary-value{font-size:28px;font-weight:700;color:var(--text);line-height:1.1}
+.summary-unit{font-size:13px;font-weight:400;color:var(--text-2);margin-left:4px}
+.summary-sub{font-size:11px;color:var(--text-3);margin-top:6px}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+
+/* CHART CONTAINER */
+.chart-wrap{position:relative}
+.chart-wrap canvas{max-width:100%}
+
+/* SELECTORS */
+.selector-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+select.form-select{padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;color:var(--text);background:var(--surface);cursor:pointer;outline:none;transition:border-color .2s}
+select.form-select:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.selector-label{font-size:12px;color:var(--text-2);font-weight:500}
+
+/* AIRPORT CHECKBOXES */
+.airport-filter{display:flex;flex-direction:column;gap:24px}
+.airport-filter-layout{display:grid;grid-template-columns:180px 1fr;gap:16px}
+.airport-checkbox-panel{background:var(--secondary-bg);border-radius:var(--radius-sm);padding:14px;display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
+.airport-checkbox-panel h4{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.airport-checkbox-label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;padding:3px 0;user-select:none}
+.airport-checkbox-label input{accent-color:var(--primary);cursor:pointer;width:14px;height:14px}
+
+/* AIRPORT TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{background:var(--primary);color:#fff;padding:10px 14px;text-align:left;font-weight:600;font-size:12px;position:sticky;top:0}
+.data-table th:not(:first-child){text-align:right}
+.data-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.data-table tr:hover td{background:var(--primary-bg)}
+.data-table tr:nth-child(even) td{background:#f8fafc}
+.table-scroll{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-intl{background:#dbeafe;color:#1d4ed8}
+.badge-dom{background:#dcfce7;color:#15803d}
+
+/* AIRPORT INDIVIDUAL */
+.airport-select-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.airport-select-row label{font-size:13px;font-weight:600;color:var(--text)}
+
+/* LOADING */
+#loading-overlay{position:fixed;inset:0;background:rgba(248,250,252,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+#loading-overlay.hidden{display:none}
+.spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:var(--text-2)}
+
+/* ERROR */
+.error-msg{padding:20px;text-align:center;color:#dc2626;font-size:13px}
+
+/* FOOTER */
+footer{text-align:center;padding:20px;font-size:12px;color:var(--text-3);border-top:1px solid var(--border);background:var(--surface);margin-top:8px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .airport-filter-layout{grid-template-columns:1fr}
+  .airport-checkbox-panel{max-height:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+  .summary-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  main{padding:16px 12px}
+  .header-title h1{font-size:14px}
+  .nav-tab{padding:12px 14px;font-size:13px}
+  .summary-value{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">正在載入資料中...</div>
+</div>
+
+<!-- HEADER -->
+<header id="app-header">
+  <div class="header-inner">
+    <div class="header-title">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M14 3L2 11h4v14h16V11h4L14 3z" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"/>
+        <path d="M14 7l6 4.5v8.5H8V11.5L14 7z" fill="rgba(255,255,255,0.4)"/>
+        <circle cx="14" cy="14" r="2" fill="white"/>
+      </svg>
+      <div>
+        <h1>台灣機場運量統計儀表板</h1>
+        <span>Taiwan Airport Operations Dashboard</span>
+      </div>
+    </div>
+    <div class="header-meta">資料來源：民航局月報 × 交通部統計網 | 2015–2025年</div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav id="nav-tabs">
+  <div class="nav-inner">
+    <div class="nav-tab active" data-page="home">🏠 首頁</div>
+    <div class="nav-tab" data-page="airports">✈️ 各機場資訊</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+<!-- ═══════════ 首頁 ═══════════ -->
+<section class="page active" id="page-home">
+
+  <!-- Summary Cards -->
+  <div>
+    <div class="section-title">📊 2025年全國機場運量摘要</div>
+    <div class="section-subtitle">資料來源：交通部民航局民航統計月報（民國114年）</div>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-label">🧳 全國總客運量</div>
+        <div class="summary-value"><span id="card-pax">—</span><span class="summary-unit">萬人次</span></div>
+        <div class="summary-sub" id="card-pax-sub">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">✈️ 全國總起降架次</div>
+        <div class="summary-value"><span id="card-flt">—</span><span class="summary-unit">次</span></div>
+        <div class="summary-sub" id="card-flt-sub">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">📦 全國總貨運量</div>
+        <div class="summary-value"><span id="card-cgo">—</span><span class="summary-unit">萬公噸</span></div>
+        <div class="summary-sub" id="card-cgo-sub">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 歷年全國客運量面積圖 -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">📈 歷年全國機場客運量趨勢</div>
+        <div class="card-subtitle">2015–2025年，單位：萬人次</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="chart-pax-trend" height="280"></canvas></div>
+  </div>
+
+  <!-- 橫條圖 + 圓餅圖 -->
+  <div class="grid-2">
+    <!-- 各機場運量橫條圖 -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🏗️ 各機場旅客運量（航線別堆疊）</div>
+          <div class="card-subtitle">單位：萬人次</div>
+        </div>
+        <div class="selector-row">
+          <span class="selector-label">年份</span>
+          <select class="form-select" id="bar-airport-year">
+            <option value="2025">2025</option>
+          </select>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-bar-airport" height="360"></canvas></div>
+    </div>
+
+    <!-- 圓餅圖 -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🥧 機場佔比 ＆ 航線別佔比</div>
+          <div class="card-subtitle">旅客人次比例</div>
+        </div>
+        <div class="selector-row">
+          <span class="selector-label">年份</span>
+          <select class="form-select" id="pie-year">
+            <option value="2025">2025</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:8px">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;text-align:center">各機場佔比</div>
+          <div class="chart-wrap"><canvas id="chart-pie-airport" height="200"></canvas></div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;text-align:center">航線別佔比</div>
+          <div class="chart-wrap"><canvas id="chart-pie-route" height="200"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 各機場歷年折線圖（可選機場） -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">📉 各機場歷年總旅客量</div>
+        <div class="card-subtitle">2015–2025年，單位：萬人次</div>
+      </div>
+    </div>
+    <div class="airport-filter-layout">
+      <div>
+        <div class="airport-checkbox-panel" id="airport-line-checkboxes">
+          <h4>選擇機場</h4>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-line-airports" height="300"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 起降架次折線 + 貨運量堆疊 -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🛫 歷年全國起降架次（依航線別）</div>
+          <div class="card-subtitle">2015–2025年，單位：萬次</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-flt-trend" height="260"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">📦 歷年全國貨運量（依航線別）</div>
+          <div class="card-subtitle">2015–2025年，單位：萬公噸</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-cgo-trend" height="260"></canvas></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════ 各機場資訊 ═══════════ -->
+<section class="page" id="page-airports">
+
+  <!-- 機場總表 -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">📋 全國各機場旅客運量總表</div>
+        <div class="card-subtitle">依總旅客量由高到低排列</div>
+      </div>
+      <div class="selector-row">
+        <span class="selector-label">年份</span>
+        <select class="form-select" id="table-year">
+          <option value="2025">2025</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="airport-table">
+        <thead>
+          <tr>
+            <th>機場名稱</th>
+            <th>類型</th>
+            <th>總旅客量</th>
+            <th>國際線合計</th>
+            <th>國際線（不含兩岸）</th>
+            <th>兩岸航線</th>
+            <th>過境</th>
+            <th>國內航線</th>
+          </tr>
+        </thead>
+        <tbody id="airport-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 個別機場 -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">🔍 個別機場詳細資訊</div>
+      </div>
+      <div class="airport-select-row">
+        <label>選擇機場</label>
+        <select class="form-select" id="single-airport-select"></select>
+      </div>
+    </div>
+
+    <!-- 個別機場 Summary Cards -->
+    <div class="summary-grid" style="margin-bottom:20px">
+      <div class="summary-card">
+        <div class="summary-label">🧳 2025年總客運量</div>
+        <div class="summary-value"><span id="ap-card-pax">—</span><span class="summary-unit">萬人次</span></div>
+        <div class="summary-sub" id="ap-card-pax-sub">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">✈️ 2025年總起降架次</div>
+        <div class="summary-value"><span id="ap-card-flt">—</span><span class="summary-unit">次</span></div>
+        <div class="summary-sub" id="ap-card-flt-sub">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">📦 2025年總貨運量</div>
+        <div class="summary-value"><span id="ap-card-cgo">—</span><span class="summary-unit">萬公噸</span></div>
+        <div class="summary-sub" id="ap-card-cgo-sub" style="font-size:10px">—</div>
+      </div>
+    </div>
+
+    <!-- 歷年客運量折線+bar -->
+    <div class="card" style="border:1px solid var(--border);margin-bottom:16px">
+      <div class="card-header">
+        <div class="card-title">歷年旅客量（折線＋總量長條）</div>
+        <div class="card-subtitle">單位：萬人次</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-ap-pax" height="280"></canvas></div>
+    </div>
+
+    <!-- 起降架次 + 貨運量 -->
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card" style="border:1px solid var(--border)">
+        <div class="card-header">
+          <div class="card-title">歷年起降架次</div>
+          <div class="card-subtitle">總量（次）</div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-ap-flt" height="240"></canvas></div>
+      </div>
+      <div id="ap-cgo-card" class="card" style="border:1px solid var(--border)">
+        <div class="card-header">
+          <div class="card-title">歷年貨運量</div>
+          <div class="card-subtitle">單位：萬公噸</div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-ap-cgo" height="240"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 圓餅圖 + YoY -->
+    <div class="grid-2">
+      <div class="card" style="border:1px solid var(--border)">
+        <div class="card-header">
+          <div class="card-title">2025年航線別客運佔比</div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-ap-pie" height="260"></canvas></div>
+      </div>
+      <div class="card" style="border:1px solid var(--border)">
+        <div class="card-header">
+          <div class="card-title">歷年總客運量 YoY 成長率</div>
+          <div class="card-subtitle">年增率（%）</div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-ap-yoy" height="260"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer>
+  資料來源：交通部民用航空局民航統計月報 × 交通部統計網 ｜ 製作：Taiwan Aviation Data Dashboard ｜ 2025
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════
+const SHEETS = {
+  t03:     { id: '1MCGF4KrHPCDTFoXe-aItXfJhQt0CP6S_stG63F0kFdw', sheet: '機場年度資料_長格式' },
+  t05_flt: { id: '1I4kk03PhHaOqI0NguJbAzoGfYZIdsEmzIQr-Y68w4_I', sheet: '起降架次' },
+  t05_pax: { id: '1I4kk03PhHaOqI0NguJbAzoGfYZIdsEmzIQr-Y68w4_I', sheet: '旅客人數' },
+  t05_cgo: { id: '1I4kk03PhHaOqI0NguJbAzoGfYZIdsEmzIQr-Y68w4_I', sheet: '貨運噸數' },
+  motc:    { id: '1shic1DqCrEvXhDJOYauHwGv_K6yFKIe5EqAb71cISDc', sheet: '旅客人數_長格式' },
+};
+
+const YEARS = [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+
+const ROUTE_COLORS = {
+  '國際航線（含港澳）': '#3b82f6',
+  '國際航線（不含兩岸）': '#3b82f6',
+  '兩岸航線': '#f59e0b',
+  '國內航線': '#22c55e',
+  '過境': '#a855f7',
+  '轉口': '#f43f5e',
+  '國際線加總': '#1d4ed8',
+};
+
+// Display labels for route types
+const ROUTE_LABEL = {
+  '國際航線（含港澳）': '國際航線（不含兩岸）',
+  '兩岸航線': '兩岸航線',
+  '國內航線': '國內航線',
+  '過境': '過境',
+  '轉口': '轉口',
+};
+
+const AIRPORT_COLORS = [
+  '#1d4ed8','#0891b2','#059669','#d97706',
+  '#7c3aed','#db2777','#dc2626','#65a30d',
+  '#0369a1','#92400e','#5b21b6','#9f1239',
+  '#166534','#1e40af','#78350f','#0c4a6e',
+];
+
+const INTL_AIRPORTS_MOTC = ['桃園國際機場','高雄國際機場','臺北松山機場','臺中機場'];
+const FREIGHT_AIRPORTS   = ['桃園國際機場','高雄國際機場','臺北松山機場','臺中機場'];
+
+// T03 name → MOTC name mapping
+const T03_TO_MOTC = {
+  '臺灣桃園國際機場':'桃園國際機場',
+  '高雄國際機場':'高雄國際機場',
+  '臺北松山國際機場':'臺北松山機場',
+  '花蓮機場':'花蓮機場',
+  '臺東機場':'臺東機場',
+  '澎湖機場':'澎湖機場',
+  '臺中國際機場':'臺中機場',
+  '臺南機場':'臺南機場',
+  '嘉義機場':'嘉義機場',
+  '七美機場':'七美機場',
+  '望安機場':'望安機場',
+  '蘭嶼機場':'蘭嶼機場',
+  '綠島機場':'綠島機場',
+  '金門機場':'金門機場',
+  '馬祖北竿機場':'北竿機場',
+  '馬祖南竿機場':'南竿機場',
+  '恆春機場':'恆春機場',
+};
+
+// Short display names
+const SHORT_NAME = {
+  '桃園國際機場':'桃園','高雄國際機場':'高雄','臺北松山機場':'松山',
+  '臺中機場':'台中','臺南機場':'臺南','嘉義機場':'嘉義','花蓮機場':'花蓮',
+  '臺東機場':'臺東','澎湖機場':'澎湖','金門機場':'金門','北竿機場':'北竿',
+  '南竿機場':'南竿','七美機場':'七美','望安機場':'望安','蘭嶼機場':'蘭嶼',
+  '綠島機場':'綠島',
+};
+function shortName(n){ return SHORT_NAME[n] || n; }
+
+// ═══════════════════════════════════════════════════
+// GLOBAL DATA STORE
+// ═══════════════════════════════════════════════════
+const DB = { t03:[], t05_flt:[], t05_pax:[], t05_cgo:[], motc:[] };
+const CHARTS = {};
+let defaultAirport = '桃園國際機場';
+let selectedAirportsForLine = ['桃園國際機場','臺北松山機場','高雄國際機場','臺中機場'];
+
+// ═══════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════
+const fmtN = (v, d=0) => v == null ? '—' : v.toLocaleString('zh-TW', {minimumFractionDigits:d, maximumFractionDigits:d});
+const toWan = v => v ? Math.round(v/10000*10)/10 : 0;
+const rocToAd = y => parseInt(y) + 1911;
+
+async function fetchGviz(sheetId, sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start < 0 || end < 0) throw new Error(`無法解析 ${sheetName} 資料`);
+  const json = JSON.parse(text.substring(start, end+1));
+  if (json.status && json.status !== 'ok') throw new Error(`Google Sheets 錯誤：${sheetName}`);
+  const cols = json.table.cols.map(c => (c.label || c.id || '').trim());
+  return (json.table.rows || []).filter(r => r && r.c).map(r => {
+    const obj = {};
+    r.c.forEach((cell, i) => { obj[cols[i]] = cell ? cell.v ?? null : null; });
+    return obj;
+  }).filter(r => Object.values(r).some(v => v != null));
+}
+
+function getOrDestroy(id) {
+  const existing = Chart.getChart(id);
+  if (existing) existing.destroy();
+  return document.getElementById(id);
+}
+
+// ═══════════════════════════════════════════════════
+// DATA ACCESS HELPERS
+// ═══════════════════════════════════════════════════
+function motcByYear(year) {
+  const roc = year - 1911;
+  return DB.motc.filter(r => r['年份'] == roc);
+}
+function motcByAirport(airportMotc) {
+  return DB.motc.filter(r => r['機場名稱'] === airportMotc).sort((a,b) => a['年份']-b['年份']);
+}
+function t03ByAirportYear(t03Name, year) {
+  const roc = year - 1911;
+  return DB.t03.find(r => r['機場名稱'] === t03Name && r['年份'] == roc);
+}
+function t03ByAirport(t03Name) {
+  return DB.t03.filter(r => r['機場名稱'] === t03Name).sort((a,b) => a['年份']-b['年份']);
+}
+function t05BySheet(sheet) {
+  return DB[sheet].reduce((acc, r) => {
+    const yr = rocToAd(r['年份']);
+    if (!acc[yr]) acc[yr] = {};
+    // Find the value column (not 年份 or 航線別)
+    const valKey = Object.keys(r).find(k => k !== '年份' && k !== '航線別');
+    acc[yr][r['航線別']] = r[valKey] || 0;
+    return acc;
+  }, {});
+}
+
+// T03 name from MOTC name
+const MOTC_TO_T03 = {};
+for (const [k,v] of Object.entries(T03_TO_MOTC)) MOTC_TO_T03[v] = k;
+
+// ═══════════════════════════════════════════════════
+// CHART DEFAULTS
+// ═══════════════════════════════════════════════════
+Chart.defaults.font.family = "'Noto Sans TC', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#64748b';
+// Unregister datalabels globally; use per-chart only
+if (window.ChartDataLabels) Chart.unregister(ChartDataLabels);
+
+const TOOLTIP_STYLE = {
+  backgroundColor: 'rgba(15,23,42,0.92)',
+  titleColor: '#e2e8f0',
+  bodyColor: '#cbd5e1',
+  borderColor: '#334155',
+  borderWidth: 1,
+  padding: 10,
+  cornerRadius: 8,
+  titleFont: { weight: '600', size: 12 },
+  bodyFont: { size: 11.5 },
+};
+
+// ═══════════════════════════════════════════════════
+// POPULATE YEAR SELECTORS
+// ═══════════════════════════════════════════════════
+function populateYearSelects() {
+  const selects = ['bar-airport-year','pie-year','table-year'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = '';
+    [...YEARS].reverse().forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      if (y === 2025) opt.selected = true;
+      el.appendChild(opt);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// SUMMARY CARDS
+// ═══════════════════════════════════════════════════
+function renderSummaryCards() {
+  const roc114 = 114;
+  // Total pax from t03 year 114
+  const paxTotal = DB.t03.filter(r => r['年份'] == roc114).reduce((s,r) => s + (r['旅客人數合計（人次）']||0), 0);
+  const fltTotal = DB.t03.filter(r => r['年份'] == roc114).reduce((s,r) => s + (r['起降架次（次）']||0), 0);
+  const cgoTotal = DB.t03.filter(r => r['年份'] == roc114).reduce((s,r) => s + (r['貨運噸數（公噸）']||0), 0);
+
+  const pax113 = DB.t03.filter(r => r['年份'] == 113).reduce((s,r) => s + (r['旅客人數合計（人次）']||0), 0);
+  const flt113 = DB.t03.filter(r => r['年份'] == 113).reduce((s,r) => s + (r['起降架次（次）']||0), 0);
+  const cgo113 = DB.t03.filter(r => r['年份'] == 113).reduce((s,r) => s + (r['貨運噸數（公噸）']||0), 0);
+
+  const paxYoy = pax113 ? ((paxTotal-pax113)/pax113*100).toFixed(1) : null;
+  const fltYoy = flt113 ? ((fltTotal-flt113)/flt113*100).toFixed(1) : null;
+  const cgoYoy = cgo113 ? ((cgoTotal-cgo113)/cgo113*100).toFixed(1) : null;
+
+  document.getElementById('card-pax').textContent = fmtN(toWan(paxTotal),1);
+  document.getElementById('card-flt').textContent = fmtN(fltTotal);
+  document.getElementById('card-cgo').textContent = fmtN(toWan(cgoTotal),1);
+
+  const yoyBadge = (v) => v ? `(YoY ${v>0?'+':''}${v}%)` : '';
+  document.getElementById('card-pax-sub').textContent = `${fmtN(paxTotal)} 人次 ${yoyBadge(paxYoy)}`;
+  document.getElementById('card-flt-sub').textContent = `較前年 ${yoyBadge(fltYoy)}`;
+  document.getElementById('card-cgo-sub').textContent = `${fmtN(cgoTotal,0)} 公噸 ${yoyBadge(cgoYoy)}`;
+}
+
+// ═══════════════════════════════════════════════════
+// CHART 1: 歷年全國客運量面積圖 (t05_pax)
+// ═══════════════════════════════════════════════════
+function renderPaxTrend() {
+  const t05 = t05BySheet('t05_pax');
+  const routes = ['國際航線（含港澳）','兩岸航線','國內航線','過境'];
+  const routeLabels = { '國際航線（含港澳）':'國際航線（不含兩岸）', '兩岸航線':'兩岸航線', '國內航線':'國內航線', '過境':'過境' };
+
+  const datasets = [
+    {
+      label:'總旅客量',
+      data: YEARS.map(y => {
+        const d = t05[y];
+        return d ? toWan((d['國際航線（含港澳）']||0)+(d['兩岸航線']||0)+(d['國內航線']||0)+(d['過境']||0)) : 0;
+      }),
+      type:'line',
+      fill:true,
+      backgroundColor:'rgba(29,78,216,0.1)',
+      borderColor:'#1d4ed8',
+      borderWidth:2.5,
+      pointRadius:4,
+      pointBackgroundColor:'#1d4ed8',
+      tension:0.4,
+      yAxisID:'y',
+      order:0,
+    },
+    ...routes.map(r => ({
+      label: routeLabels[r],
+      data: YEARS.map(y => toWan(t05[y]?.[r]||0)),
+      borderColor: ROUTE_COLORS[r],
+      backgroundColor: ROUTE_COLORS[r] + '22',
+      borderWidth: 1.5,
+      pointRadius: 3,
+      tension: 0.4,
+      yAxisID:'y',
+      order:1,
+    }))
+  ];
+
+  const ctx = getOrDestroy('chart-pax-trend');
+  CHARTS.paxTrend = new Chart(ctx, {
+    type:'line',
+    data:{ labels: YEARS, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:12, padding:16 } }, tooltip:{ ...TOOLTIP_STYLE, callbacks:{
+        label: ctx => ` ${ctx.dataset.label}: ${fmtN(ctx.parsed.y,1)} 萬人次`
+      }}},
+      scales:{
+        y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v => fmtN(v,0)+'萬' } },
+        x:{ grid:{ display:false } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// CHART 2: 各機場運量橫條圖 (motc)
+// ═══════════════════════════════════════════════════
+function renderBarAirport(year=2025) {
+  const rows = motcByYear(year).filter(r => r['機場名稱']);
+  rows.sort((a,b) => (b['總計（人次）']||0) - (a['總計（人次）']||0));
+  const labels = rows.map(r => shortName(r['機場名稱']));
+
+  const segments = [
+    { key:'國際航線_不含兩岸（人次）', label:'國際航線（不含兩岸）', color:'#3b82f6' },
+    { key:'兩岸航線（人次）',           label:'兩岸航線',             color:'#f59e0b' },
+    { key:'國內航線（人次）',           label:'國內航線',             color:'#22c55e' },
+    { key:'過境（人次）',               label:'過境',                 color:'#a855f7' },
+  ];
+
+  const datasets = segments.map(s => ({
+    label: s.label,
+    data: rows.map(r => toWan(r[s.key]||0)),
+    backgroundColor: s.color,
+    borderRadius: 2,
+  }));
+
+  const ctx = getOrDestroy('chart-bar-airport');
+  CHARTS.barAirport = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, padding:12 } },
+        tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtN(ctx.parsed.x,1)} 萬人次` }}
+      },
+      scales:{
+        x:{ stacked:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v => v+'萬' } },
+        y:{ stacked:true, grid:{ display:false }, ticks:{ font:{ size:11 } } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// CHART 3+4: 圓餅圖 (機場佔比 + 航線佔比)
+// ═══════════════════════════════════════════════════
+function renderPieCharts(year=2025) {
+  const rows = motcByYear(year).filter(r => r['機場名稱']);
+  rows.sort((a,b) => (b['總計（人次）']||0) - (a['總計（人次）']||0));
+
+  // Airport pie
+  const apLabels = rows.map(r => shortName(r['機場名稱']));
+  const apData   = rows.map(r => r['總計（人次）']||0);
+  const ctxA = getOrDestroy('chart-pie-airport');
+  CHARTS.pieAirport = new Chart(ctxA, {
+    type:'pie',
+    plugins: window.ChartDataLabels ? [ChartDataLabels] : [],
+    data:{ labels:apLabels, datasets:[{ data:apData, backgroundColor:AIRPORT_COLORS, borderWidth:1, borderColor:'#fff' }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ boxWidth:10, padding:6, font:{ size:10 } } },
+        tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => {
+          const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+          const pct = (ctx.parsed/total*100).toFixed(1);
+          return ` ${ctx.label}: ${pct}% (${fmtN(ctx.parsed)} 人次)`;
+        }}},
+        ...(window.ChartDataLabels ? { datalabels:{
+          formatter:(v,ctx)=>{ const t=ctx.dataset.data.reduce((a,b)=>a+b,0); const p=(v/t*100); return p>=4?p.toFixed(1)+'%':''; },
+          color:'#fff', font:{ size:10, weight:'700' },
+        }} : {})
+      }
+    }
+  });
+
+  // Route pie
+  const total = rows.reduce((s,r)=>(s + (r['總計（人次）']||0)), 0);
+  const intlSum   = rows.reduce((s,r)=>(s + (r['國際航線_不含兩岸（人次）']||0)), 0);
+  const crossSum  = rows.reduce((s,r)=>(s + (r['兩岸航線（人次）']||0)), 0);
+  const domSum    = rows.reduce((s,r)=>(s + (r['國內航線（人次）']||0)), 0);
+  const transitSum= rows.reduce((s,r)=>(s + (r['過境（人次）']||0)), 0);
+  const rtLabels = ['國際航線（不含兩岸）','兩岸航線','國內航線','過境'];
+  const rtData   = [intlSum, crossSum, domSum, transitSum];
+  const rtColors = ['#3b82f6','#f59e0b','#22c55e','#a855f7'];
+  const ctxR = getOrDestroy('chart-pie-route');
+  CHARTS.pieRoute = new Chart(ctxR, {
+    type:'pie',
+    plugins: window.ChartDataLabels ? [ChartDataLabels] : [],
+    data:{ labels:rtLabels, datasets:[{ data:rtData, backgroundColor:rtColors, borderWidth:1, borderColor:'#fff' }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ boxWidth:10, padding:6, font:{ size:10 } } },
+        tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => {
+          const t=ctx.dataset.data.reduce((a,b)=>a+b,0);
+          return ` ${ctx.label}: ${(ctx.parsed/t*100).toFixed(1)}% (${fmtN(ctx.parsed)} 人次)`;
+        }}},
+        ...(window.ChartDataLabels ? { datalabels:{
+          formatter:(v,ctx)=>{ const t=ctx.dataset.data.reduce((a,b)=>a+b,0); const p=(v/t*100); return p>=3?p.toFixed(1)+'%':''; },
+          color:'#fff', font:{ size:10, weight:'700' },
+        }} : {})
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// CHART 5: 各機場歷年折線圖 (checkboxes)
+// ═══════════════════════════════════════════════════
+function buildAirportCheckboxes() {
+  const allAirports = [...new Set(DB.motc.map(r => r['機場名稱']).filter(Boolean))];
+  const panel = document.getElementById('airport-line-checkboxes');
+  panel.innerHTML = '<h4>選擇機場</h4>';
+  allAirports.forEach((ap, i) => {
+    const label = document.createElement('label');
+    label.className = 'airport-checkbox-label';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = ap;
+    cb.checked = selectedAirportsForLine.includes(ap);
+    cb.addEventListener('change', () => {
+      if (cb.checked) selectedAirportsForLine.push(ap);
+      else selectedAirportsForLine = selectedAirportsForLine.filter(a=>a!==ap);
+      renderAirportLineChart();
+    });
+    label.appendChild(cb);
+    const dot = document.createElement('span');
+    dot.style.cssText = `display:inline-block;width:8px;height:8px;border-radius:50%;background:${AIRPORT_COLORS[i%AIRPORT_COLORS.length]};flex-shrink:0`;
+    label.appendChild(dot);
+    label.appendChild(document.createTextNode(' ' + shortName(ap)));
+    panel.appendChild(label);
+  });
+}
+
+function renderAirportLineChart() {
+  const allAirports = [...new Set(DB.motc.map(r => r['機場名稱']).filter(Boolean))];
+  const datasets = selectedAirportsForLine.map(ap => {
+    const idx = allAirports.indexOf(ap);
+    const rows = motcByAirport(ap);
+    return {
+      label: shortName(ap),
+      data: YEARS.map(y => { const r = rows.find(d => rocToAd(d['年份'])==y); return r ? toWan(r['總計（人次）']||0) : null; }),
+      borderColor: AIRPORT_COLORS[idx%AIRPORT_COLORS.length],
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      pointRadius: 3,
+      tension: 0.4,
+      spanGaps: true,
+    };
+  });
+  const ctx = getOrDestroy('chart-line-airports');
+  CHARTS.lineAirports = new Chart(ctx, {
+    type:'line',
+    data:{ labels:YEARS, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:12, padding:12 } }, tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtN(ctx.parsed.y,1)} 萬人次` }}},
+      scales:{
+        y:{ grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v => v+'萬' } },
+        x:{ grid:{ display:false } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// CHART 6: 歷年全國起降架次 (t05_flt)
+// ═══════════════════════════════════════════════════
+function renderFltTrend() {
+  const t05 = t05BySheet('t05_flt');
+  const routes = ['國際航線（含港澳）','兩岸航線','國內航線'];
+  const colors  = ['#3b82f6','#f59e0b','#22c55e'];
+  const labels_r = { '國際航線（含港澳）':'國際航線（不含兩岸）','兩岸航線':'兩岸航線','國內航線':'國內航線' };
+  const datasets = routes.map((r,i) => ({
+    label: labels_r[r],
+    data: YEARS.map(y => Math.round((t05[y]?.[r]||0)/10000*10)/10),
+    borderColor: colors[i],
+    backgroundColor: colors[i]+'33',
+    fill: true,
+    borderWidth: 2,
+    pointRadius: 3,
+    tension: 0.4,
+  }));
+  const ctx = getOrDestroy('chart-flt-trend');
+  CHARTS.fltTrend = new Chart(ctx, {
+    type:'line',
+    data:{ labels:YEARS, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:12, padding:12 } }, tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtN(ctx.parsed.y,1)} 萬次` }}},
+      scales:{
+        y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v => v+'萬' } },
+        x:{ grid:{ display:false } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// CHART 7: 歷年全國貨運量堆疊長條圖 (t05_cgo)
+// ═══════════════════════════════════════════════════
+function renderCgoTrend() {
+  const t05 = t05BySheet('t05_cgo');
+  const routes = ['國際航線（含港澳）','兩岸航線','國內航線','轉口'];
+  const colors  = ['#3b82f6','#f59e0b','#22c55e','#f43f5e'];
+  const labels_r = { '國際航線（含港澳）':'國際航線（不含兩岸）','兩岸航線':'兩岸航線','國內航線':'國內航線','轉口':'轉口' };
+  const datasets = routes.map((r,i) => ({
+    label: labels_r[r],
+    data: YEARS.map(y => Math.round((t05[y]?.[r]||0)/10000*100)/100),
+    backgroundColor: colors[i],
+    borderRadius: 2,
+  }));
+  const ctx = getOrDestroy('chart-cgo-trend');
+  CHARTS.cgoTrend = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:YEARS, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:12, padding:12 } }, tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtN(ctx.parsed.y,2)} 萬公噸` }}},
+      scales:{
+        x:{ stacked:true, grid:{ display:false } },
+        y:{ stacked:true, beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v => v+'萬' } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// AIRPORT TABLE
+// ═══════════════════════════════════════════════════
+function renderAirportTable(year=2025) {
+  const rows = motcByYear(year).filter(r => r['機場名稱']);
+  rows.sort((a,b) => (b['總計（人次）']||0) - (a['總計（人次）']||0));
+  const tbody = document.getElementById('airport-table-body');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const isIntl = INTL_AIRPORTS_MOTC.includes(r['機場名稱']);
+    const tr = document.createElement('tr');
+    const intlSum = (r['國際航線_不含兩岸（人次）']||0) + (r['兩岸航線（人次）']||0);
+    tr.innerHTML = `
+      <td><strong>${r['機場名稱']}</strong></td>
+      <td><span class="badge ${isIntl?'badge-intl':'badge-dom'}">${isIntl?'國際機場':'國內機場'}</span></td>
+      <td>${fmtN(r['總計（人次）'])}</td>
+      <td>${fmtN(intlSum)}</td>
+      <td>${fmtN(r['國際航線_不含兩岸（人次）'])}</td>
+      <td>${fmtN(r['兩岸航線（人次）'])}</td>
+      <td>${fmtN(r['過境（人次）'])}</td>
+      <td>${fmtN(r['國內航線（人次）'])}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// SINGLE AIRPORT
+// ═══════════════════════════════════════════════════
+function buildAirportSelect() {
+  const airports = [...new Set(DB.motc.map(r => r['機場名稱']).filter(Boolean))];
+  airports.sort((a,b) => {
+    const order = ['桃園國際機場','高雄國際機場','臺北松山機場','臺中機場'];
+    const ai = order.indexOf(a), bi = order.indexOf(b);
+    if (ai>=0 && bi>=0) return ai-bi;
+    if (ai>=0) return -1;
+    if (bi>=0) return 1;
+    return a.localeCompare(b,'zh-TW');
+  });
+  const sel = document.getElementById('single-airport-select');
+  sel.innerHTML = '';
+  airports.forEach(ap => {
+    const opt = document.createElement('option');
+    opt.value = ap; opt.textContent = ap;
+    if (ap === defaultAirport) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => renderSingleAirport(sel.value));
+}
+
+function renderSingleAirport(airportMotc) {
+  const t03Name = MOTC_TO_T03[airportMotc] || airportMotc;
+  const rows = motcByAirport(airportMotc);
+  const t03rows = t03ByAirport(t03Name);
+  const isFreight = FREIGHT_AIRPORTS.includes(airportMotc);
+
+  // Summary cards 2025
+  const r2025 = rows.find(r => rocToAd(r['年份']) === 2025);
+  const t03_2025 = t03ByAirportYear(t03Name, 2025);
+  const r2024 = rows.find(r => rocToAd(r['年份']) === 2024);
+
+  document.getElementById('ap-card-pax').textContent = r2025 ? fmtN(toWan(r2025['總計（人次）']||0),1) : '—';
+  document.getElementById('ap-card-pax-sub').textContent = r2025 && r2024 && r2024['總計（人次）'] ?
+    `YoY ${(((r2025['總計（人次）']||0)-(r2024['總計（人次）']||0))/(r2024['總計（人次）']||1)*100).toFixed(1)}%` : '—';
+  document.getElementById('ap-card-flt').textContent = t03_2025 ? fmtN(t03_2025['起降架次（次）']||0) : '—';
+  document.getElementById('ap-card-flt-sub').textContent = '';
+  document.getElementById('ap-card-cgo').textContent = t03_2025 && isFreight ? fmtN(toWan(t03_2025['貨運噸數（公噸）']||0),2) : (isFreight?'—':'不適用');
+  document.getElementById('ap-card-cgo-sub').textContent = isFreight ? '僅桃園/松山/高雄/台中機場有貨運資料' : '此機場無貨運資料';
+
+  // Hide/show cargo card
+  document.getElementById('ap-cgo-card').style.display = isFreight ? '' : 'none';
+
+  // Chart: 歷年客運量 (line + total bar)
+  const paxCtx = getOrDestroy('chart-ap-pax');
+  const paxDatasets = [
+    { label:'總客運量', data: YEARS.map(y=>{ const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['總計（人次）']||0):null; }),
+      type:'bar', backgroundColor:'rgba(29,78,216,0.18)', borderColor:'#1d4ed8', borderWidth:1, yAxisID:'y', spanGaps:true, order:1 },
+    { label:'國際航線（不含兩岸）', data: YEARS.map(y=>{ const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['國際航線_不含兩岸（人次）']||0):null; }),
+      type:'line', borderColor:'#3b82f6', backgroundColor:'transparent', borderWidth:2, pointRadius:3, tension:0.4, yAxisID:'y', spanGaps:true, order:0 },
+    { label:'兩岸航線', data: YEARS.map(y=>{ const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['兩岸航線（人次）']||0):null; }),
+      type:'line', borderColor:'#f59e0b', backgroundColor:'transparent', borderWidth:2, pointRadius:3, tension:0.4, yAxisID:'y', spanGaps:true, order:0 },
+    { label:'國內航線', data: YEARS.map(y=>{ const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['國內航線（人次）']||0):null; }),
+      type:'line', borderColor:'#22c55e', backgroundColor:'transparent', borderWidth:2, pointRadius:3, tension:0.4, yAxisID:'y', spanGaps:true, order:0 },
+    { label:'過境', data: YEARS.map(y=>{ const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['過境（人次）']||0):null; }),
+      type:'line', borderColor:'#a855f7', backgroundColor:'transparent', borderWidth:2, pointRadius:3, tension:0.4, yAxisID:'y', spanGaps:true, order:0 },
+  ];
+  CHARTS.apPax = new Chart(paxCtx, {
+    type:'bar', data:{ labels:YEARS, datasets:paxDatasets },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:12, padding:10 } }, tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtN(ctx.parsed.y,1)} 萬人次` }}},
+      scales:{ y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v=>v+'萬' } }, x:{ grid:{ display:false } } }
+    }
+  });
+
+  // Chart: 起降架次
+  const fltCtx = getOrDestroy('chart-ap-flt');
+  CHARTS.apFlt = new Chart(fltCtx, {
+    type:'bar',
+    data:{ labels:YEARS, datasets:[{
+      label:'起降架次', backgroundColor:'#2563eb', borderRadius:3,
+      data: YEARS.map(y=>{ const r=t03rows.find(d=>rocToAd(d['年份'])==y); return r?r['起降架次（次）']||0:null; }),
+    }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => ` 起降架次：${fmtN(ctx.parsed.y)} 次` }}},
+      scales:{ y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v=>fmtN(v) } }, x:{ grid:{ display:false } } }
+    }
+  });
+
+  // Chart: 貨運量 (if freight airport)
+  if (isFreight) {
+    const cgoCtx = getOrDestroy('chart-ap-cgo');
+    CHARTS.apCgo = new Chart(cgoCtx, {
+      type:'bar',
+      data:{ labels:YEARS, datasets:[{
+        label:'貨運噸數', backgroundColor:'#059669', borderRadius:3,
+        data: YEARS.map(y=>{ const r=t03rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['貨運噸數（公噸）']||0):null; }),
+      }]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:false }, tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => ` 貨運量：${fmtN(ctx.parsed.y,2)} 萬公噸` }}},
+        scales:{ y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v=>v+'萬' } }, x:{ grid:{ display:false } } }
+      }
+    });
+  }
+
+  // Chart: 航線佔比圓餅 (2025)
+  if (r2025) {
+    const pieCtx = getOrDestroy('chart-ap-pie');
+    const pieData = [
+      r2025['國際航線_不含兩岸（人次）']||0,
+      r2025['兩岸航線（人次）']||0,
+      r2025['國內航線（人次）']||0,
+      r2025['過境（人次）']||0,
+    ];
+    CHARTS.apPie = new Chart(pieCtx, {
+      type:'pie',
+      plugins: window.ChartDataLabels ? [ChartDataLabels] : [],
+      data:{ labels:['國際（不含兩岸）','兩岸航線','國內航線','過境'], datasets:[{
+        data:pieData, backgroundColor:['#3b82f6','#f59e0b','#22c55e','#a855f7'], borderWidth:1, borderColor:'#fff'
+      }]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ position:'bottom', labels:{ boxWidth:10, padding:8, font:{ size:11 } } },
+          tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => {
+            const t=ctx.dataset.data.reduce((a,b)=>a+b,0);
+            return t>0 ? ` ${ctx.label}: ${(ctx.parsed/t*100).toFixed(1)}% (${fmtN(ctx.parsed)} 人次)` : ` ${ctx.label}: 0`;
+          }}},
+          ...(window.ChartDataLabels ? { datalabels:{ formatter:(v,ctx)=>{ const t=ctx.dataset.data.reduce((a,b)=>a+b,0); const p=(v/t*100); return p>=3?p.toFixed(1)+'%':''; }, color:'#fff', font:{ size:11, weight:'700' } }} : {})
+        }
+      }
+    });
+  }
+
+  // Chart: YoY折線
+  const yoyCtx = getOrDestroy('chart-ap-yoy');
+  const yoyData = YEARS.map((y, i) => {
+    if (i === 0) return null;
+    const cur = rows.find(d => rocToAd(d['年份'])==y);
+    const prv = rows.find(d => rocToAd(d['年份'])==YEARS[i-1]);
+    if (!cur || !prv || !prv['總計（人次）']) return null;
+    return +((( (cur['總計（人次）']||0) - (prv['總計（人次）']||0) ) / prv['總計（人次）']) * 100).toFixed(1);
+  });
+  CHARTS.apYoy = new Chart(yoyCtx, {
+    type:'line',
+    data:{ labels:YEARS, datasets:[{
+      label:'YoY成長率(%)',
+      data: yoyData,
+      borderColor: '#1d4ed8', backgroundColor: 'rgba(29,78,216,0.08)',
+      fill:true, borderWidth:2, pointRadius:4, tension:0.4, spanGaps:true,
+      pointBackgroundColor: yoyData.map(v => v == null ? '#fff' : v >= 0 ? '#22c55e' : '#ef4444'),
+      pointBorderColor: '#1d4ed8',
+    }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ ...TOOLTIP_STYLE, callbacks:{ label: ctx => ctx.parsed.y != null ? ` YoY：${ctx.parsed.y > 0 ? '+':''}${fmtN(ctx.parsed.y,1)}%` : ' —' }}},
+      scales:{
+        y:{ grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback: v => v+'%' },
+          afterDataLimits: sc => { sc.max += 5; sc.min -= 5; }
+        },
+        x:{ grid:{ display:false } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// TAB NAVIGATION
+// ═══════════════════════════════════════════════════
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('page-'+tab.dataset.page).classList.add('active');
+  });
+});
+
+// ═══════════════════════════════════════════════════
+// EVENT LISTENERS
+// ═══════════════════════════════════════════════════
+document.getElementById('bar-airport-year').addEventListener('change', e => renderBarAirport(+e.target.value));
+document.getElementById('pie-year').addEventListener('change', e => renderPieCharts(+e.target.value));
+document.getElementById('table-year').addEventListener('change', e => renderAirportTable(+e.target.value));
+
+// ═══════════════════════════════════════════════════
+// MAIN INIT
+// ═══════════════════════════════════════════════════
+async function init() {
+  try {
+    const [t03, t05f, t05p, t05c, motc] = await Promise.all([
+      fetchGviz(SHEETS.t03.id,     SHEETS.t03.sheet),
+      fetchGviz(SHEETS.t05_flt.id, SHEETS.t05_flt.sheet),
+      fetchGviz(SHEETS.t05_pax.id, SHEETS.t05_pax.sheet),
+      fetchGviz(SHEETS.t05_cgo.id, SHEETS.t05_cgo.sheet),
+      fetchGviz(SHEETS.motc.id,    SHEETS.motc.sheet),
+    ]);
+    DB.t03=t03; DB.t05_flt=t05f; DB.t05_pax=t05p; DB.t05_cgo=t05c; DB.motc=motc;
+
+    populateYearSelects();
+    renderSummaryCards();
+    renderPaxTrend();
+    renderBarAirport(2025);
+    renderPieCharts(2025);
+    buildAirportCheckboxes();
+    renderAirportLineChart();
+    renderFltTrend();
+    renderCgoTrend();
+
+    // Airport page
+    renderAirportTable(2025);
+    buildAirportSelect();
+    renderSingleAirport(defaultAirport);
+
+    document.getElementById('loading-overlay').classList.add('hidden');
+  } catch(err) {
+    console.error(err);
+    document.getElementById('loading-overlay').innerHTML = `
+      <div style="text-align:center;padding:24px">
+        <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+        <div style="font-size:16px;font-weight:600;color:#dc2626;margin-bottom:8px">資料載入失敗</div>
+        <div style="font-size:13px;color:#64748b;margin-bottom:16px">${err.message}</div>
+        <div style="font-size:12px;color:#94a3b8">請確認 Google Sheets 已設為「任何人有連結可檢視」，然後重新整理頁面</div>
+        <button onclick="location.reload()" style="margin-top:16px;padding:10px 24px;background:#1d4ed8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">重新載入</button>
+      </div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
