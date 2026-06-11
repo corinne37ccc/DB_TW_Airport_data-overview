@@ -9,12 +9,35 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
 :root {
-  --primary:#1d4ed8; --primary-light:#3b82f6; --primary-bg:#eff6ff;
-  --secondary:#475569; --secondary-bg:#f1f5f9;
-  --surface:#ffffff; --bg:#f0f4f8;
-  --text:#1e293b; --text-2:#64748b; --text-3:#94a3b8;
-  --border:#e2e8f0;
-  --shadow-sm:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  /* ── 主色調：鋼藍系 ── */
+  --primary:      #7192A1;   /* 鋼藍，主要互動色 */
+  --primary-dark: #042842;   /* 深海軍藍，標題/表頭 */
+  --primary-mid:  #4E7383;   /* 中深藍，hover */
+  --primary-light:#A5C2CC;   /* 淺鋼藍 */
+  --primary-bg:   #EBF2F5;   /* 極淺藍底 */
+  --primary-border:#C5D6DD;
+
+  /* ── 強調色：暖棕 / 鐵鏽橘 ── */
+  --accent-brown: #C08E66;   /* 暖棕，次要強調 */
+  --accent-rust:  #C86647;   /* 鐵鏽橘，數值強調 */
+  --accent-light: #E8C9A8;   /* 淺暖棕 */
+
+  /* ── 底色 / 表面 ── */
+  --bg:     #EDE5D8;          /* 米色底（EADFCB 稍亮） */
+  --bg-warm:#F5EFE4;          /* 淺米白 */
+  --surface:#FDFAF5;          /* 卡片白（帶暖色調） */
+  --secondary-bg:#F0E9DC;     /* checkbox 面板底 */
+
+  /* ── 文字 ── */
+  --text:   #042842;          /* 深藍黑，主文字 */
+  --text-2: #5A7A8A;          /* 中灰藍，副文字 */
+  --text-3: #9AB2BC;          /* 淡灰藍，提示文字 */
+
+  /* ── 邊框 / 陰影 ── */
+  --border: #D8CEBD;          /* 暖米色邊框 */
+  --shadow-sm: 0 1px 3px rgba(4,40,66,.07), 0 1px 2px rgba(4,40,66,.05);
+  --shadow:    0 4px 6px -1px rgba(4,40,66,.08), 0 2px 4px -2px rgba(4,40,66,.05);
+
   --radius:12px; --radius-sm:8px;
   --font:'Noto Sans TC',sans-serif;
 }
@@ -23,18 +46,18 @@ html{scroll-behavior:smooth}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
 
 /* HEADER */
-#app-header{background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 60%,#2563eb 100%);color:#fff;padding:0 24px;box-shadow:0 2px 8px rgba(0,0,0,.2);position:sticky;top:0;z-index:100}
+#app-header{background:linear-gradient(135deg,#042842 0%,#1A3E54 55%,#7192A1 100%);color:#fff;padding:0 24px;box-shadow:0 2px 10px rgba(4,40,66,.35);position:sticky;top:0;z-index:100}
 .header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;height:72px}
 .header-title h1{font-size:25px;font-weight:700;letter-spacing:.5px}
-.header-title span{font-size:12px;opacity:.7;display:none;margin-top:2px}
+.header-title span{font-size:12px;opacity:.65;display:none;margin-top:2px}
 @media(min-width:600px){.header-title span{display:block}}
 
 /* NAV */
 #nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:72px;z-index:99;box-shadow:var(--shadow-sm)}
 .nav-inner{max-width:1400px;margin:0 auto;display:flex;padding:0 24px}
 .nav-tab{padding:14px 20px;font-size:14px;font-weight:500;color:var(--text-2);border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;user-select:none}
-.nav-tab:hover{color:var(--primary);background:var(--primary-bg)}
-.nav-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700}
+.nav-tab:hover{color:var(--primary-dark);background:var(--primary-bg)}
+.nav-tab.active{color:var(--primary-dark);border-bottom-color:var(--accent-rust);font-weight:700}
 
 /* MAIN */
 main{max-width:1400px;margin:0 auto;padding:24px 20px;display:flex;flex-direction:column;gap:24px}
@@ -44,21 +67,21 @@ main{max-width:1400px;margin:0 auto;padding:24px 20px;display:flex;flex-directio
 /* CARD */
 .card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border);padding:20px}
 .card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.card-title{font-size:28px;font-weight:700;color:var(--text);line-height:1.3}
+.card-title{font-size:28px;font-weight:700;color:var(--primary-dark);line-height:1.3}
 .card-subtitle{font-size:12px;color:var(--text-3);margin-top:4px}
 
 /* SUMMARY CARDS */
 .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .summary-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px 24px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
-.summary-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.summary-card:nth-child(1)::before{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
-.summary-card:nth-child(2)::before{background:linear-gradient(90deg,#0891b2,#22d3ee)}
-.summary-card:nth-child(3)::before{background:linear-gradient(90deg,#059669,#34d399)}
+.summary-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.summary-card:nth-child(1)::before{background:linear-gradient(90deg,#1A5C8E,#4D96B8)}
+.summary-card:nth-child(2)::before{background:linear-gradient(90deg,#3A82A8,#7FB8D0)}
+.summary-card:nth-child(3)::before{background:linear-gradient(90deg,#6AAEC8,#A8D4E4)}
 .summary-label{font-size:24px;font-weight:600;color:var(--text-2);margin-bottom:12px;line-height:1.3}
 .summary-value-wrap{text-align:right}
-.summary-number{font-size:32px;font-weight:700;color:var(--text);display:block;font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
+.summary-number{font-size:32px;font-weight:700;color:var(--primary-dark);display:block;font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
 .summary-unit{font-size:14px;color:var(--text-2);display:block;margin-top:2px}
-.summary-sub{font-size:13px;color:var(--text-3);margin-top:8px;text-align:right;font-variant-numeric:tabular-nums}
+.summary-sub{font-size:13px;color:var(--accent-rust);margin-top:8px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 
 /* GRID */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
@@ -75,29 +98,31 @@ select.form-select:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px 
 
 /* CHECKBOXES */
 .airport-filter-layout{display:grid;grid-template-columns:180px 1fr;gap:16px}
-.airport-checkbox-panel{background:var(--secondary-bg);border-radius:var(--radius-sm);padding:14px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
+.airport-checkbox-panel{background:var(--secondary-bg);border-radius:var(--radius-sm);border:1px solid var(--border);padding:14px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
 .airport-checkbox-panel h4{font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.6px}
 .airport-checkbox-label{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;padding:3px 0;user-select:none}
-.airport-checkbox-label input{accent-color:var(--primary);cursor:pointer;width:14px;height:14px}
+.airport-checkbox-label input{accent-color:var(--primary-dark);cursor:pointer;width:14px;height:14px}
 
-/* TABLE — sticky header within scrollable container */
+/* SELECTORS override */
+select.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(113,146,161,.2)}
+
+/* TABLE — sticky header */
 .table-scroll{overflow:auto;max-height:480px;border-radius:var(--radius);border:1px solid var(--border)}
 .data-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
 .data-table thead{position:sticky;top:0;z-index:3}
-.data-table th{background:var(--primary);color:#fff;padding:10px 14px;text-align:left;font-weight:600;font-size:12px}
+.data-table th{background:var(--primary-dark);color:#EADFCB;padding:10px 14px;text-align:left;font-weight:600;font-size:12px}
 .data-table th:not(:first-child){text-align:right}
 .data-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
 .data-table td:not(:first-child){text-align:right}
 .data-table tr:hover td{background:var(--primary-bg)}
-.data-table tr:nth-child(even) td{background:#f8fafc}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-intl{background:#dbeafe;color:#1d4ed8}
-.badge-dom{background:#dcfce7;color:#15803d}
+.badge-intl{background:#D6E8EE;color:#042842}
+.badge-dom{background:#F0E4D4;color:#7A4A20}
 
 /* LOADING */
-#loading-overlay{position:fixed;inset:0;background:rgba(248,250,252,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+#loading-overlay{position:fixed;inset:0;background:rgba(237,229,216,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
 #loading-overlay.hidden{display:none}
-.spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+.spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--primary-dark);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:14px;color:var(--text-2)}
 
@@ -420,14 +445,32 @@ const SHEETS = {
   motc:    { id:'1shic1DqCrEvXhDJOYauHwGv_K6yFKIe5EqAb71cISDc', sheet:'旅客人數_長格式' },
 };
 const YEARS = [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+// ── 配色系統（來自調色盤 #7192A1 #EADFCB #C08E66 #C86647 #042842）──
 const ROUTE_COLORS = {
-  '國際航線（含港澳）':'#3b82f6', '兩岸航線':'#f59e0b',
-  '國內航線':'#22c55e', '過境':'#a855f7', '轉口':'#f43f5e',
+  '國際航線（含港澳）':'#1A4A70', // 深藍（更清楚）
+  '兩岸航線':          '#C08E66', // 暖棕
+  '國內航線':          '#C86647', // 鐵鏽橘
+  '過境':              '#8AAFBE', // 灰藍（淡化）
+  '轉口':              '#A5C2CC', // 淺鋼藍
 };
+// 機場顏色：以調色盤為基礎衍生 16 色
 const AIRPORT_COLORS = [
-  '#1d4ed8','#0891b2','#059669','#d97706','#7c3aed','#db2777',
-  '#dc2626','#65a30d','#0369a1','#92400e','#5b21b6','#9f1239',
-  '#166534','#1e40af','#78350f','#0c4a6e',
+  '#042842', // 深海軍藍
+  '#7192A1', // 鋼藍
+  '#C86647', // 鐵鏽橘
+  '#C08E66', // 暖棕
+  '#2E5F78', // 中深藍
+  '#A5C2CC', // 淺鋼藍
+  '#9A5535', // 深棕橘
+  '#4E7383', // 中藍灰
+  '#E8C9A8', // 淺暖棕
+  '#1A3E54', // 深藍
+  '#D4A070', // 金棕
+  '#638A99', // 灰藍
+  '#B07040', // 中棕
+  '#8FB0BC', // 淡藍
+  '#7A4A2A', // 深棕
+  '#C4A882', // 沙棕
 ];
 const INTL_AIRPORTS_MOTC = ['桃園國際機場','高雄國際機場','臺北松山機場','臺中機場'];
 const FREIGHT_AIRPORTS   = ['桃園國際機場','高雄國際機場','臺北松山機場','臺中機場'];
@@ -504,15 +547,16 @@ function t05BySheet(sheet) {
 // ═══════════════════════════════════════════
 Chart.defaults.font.family="'Noto Sans TC',sans-serif";
 Chart.defaults.font.size=12;
-Chart.defaults.color='#64748b';
+Chart.defaults.color='#5A7A8A';  // --text-2
 if(window.ChartDataLabels) Chart.unregister(ChartDataLabels);
 
 const TS={
-  backgroundColor:'rgba(15,23,42,0.92)',
-  titleColor:'#e2e8f0',bodyColor:'#cbd5e1',
-  borderColor:'#334155',borderWidth:1,
-  padding:10,cornerRadius:8,
-  titleFont:{weight:'600',size:12},bodyFont:{size:11.5},
+  backgroundColor:'rgba(4,40,66,0.92)',   // --primary-dark
+  titleColor:'#EADFCB',                    // 米色
+  bodyColor:'#C5D6DD',                     // 淺鋼藍
+  borderColor:'#1A3E54',
+  borderWidth:1, padding:10, cornerRadius:8,
+  titleFont:{weight:'600',size:12}, bodyFont:{size:11.5},
 };
 
 // ═══════════════════════════════════════════
@@ -615,10 +659,10 @@ function renderBarAirport(year=2025) {
   };
 
   const segs=[
-    {key:'國際航線_不含兩岸（人次）',label:'國際航線（不含兩岸）',color:'#3b82f6'},
-    {key:'兩岸航線（人次）',label:'兩岸航線',color:'#f59e0b'},
-    {key:'國內航線（人次）',label:'國內航線',color:'#22c55e'},
-    {key:'過境（人次）',label:'過境',color:'#a855f7'},
+    {key:'國際航線_不含兩岸（人次）',label:'國際航線（不含兩岸）',color:'#1A4A70'},
+    {key:'兩岸航線（人次）',label:'兩岸航線',color:'#C08E66'},
+    {key:'國內航線（人次）',label:'國內航線',color:'#C86647'},
+    {key:'過境（人次）',label:'過境',color:'#8AAFBE'},
   ];
   CHARTS.barAirport=new Chart(getOrDestroy('chart-bar-airport'),{
     type:'bar',
@@ -656,57 +700,90 @@ function renderPieCharts(year=2025) {
   const apD=rows.map(r=>r['總計（人次）']||0);
   const apColors=AIRPORT_COLORS.slice(0,apD.length);
 
+  // 圖例產生函式：底部並排，顯示名稱＋佔比
+  function makeLegendBottom(colors) {
+    return {
+      position:'bottom',
+      labels:{
+        generateLabels(chart){
+          const ds=chart.data.datasets[0];
+          const total=ds.data.reduce((a,b)=>(a||0)+(b||0),0);
+          return chart.data.labels.map((lbl,i)=>{
+            const v=ds.data[i]||0;
+            const pct=total>0?(v/total*100).toFixed(1):'0.0';
+            return{
+              text:`${lbl} ${pct}%`,
+              fillStyle:Array.isArray(colors)?colors[i]:colors,
+              strokeStyle:'#fff', lineWidth:1,
+              hidden:!chart.getDataVisibility(i), index:i,
+            };
+          });
+        },
+        boxWidth:12, padding:14, font:{size:13},
+      }
+    };
+  }
+
+  // 機場圓餅：≥8% 顯示名稱+%，3-8% 只顯示%，<3% 不顯示
   CHARTS.pieAirport=new Chart(getOrDestroy('chart-pie-airport'),{
     type:'pie',
     plugins:hasDL?[ChartDataLabels]:[],
     data:{labels:apL,datasets:[{data:apD,backgroundColor:apColors,borderWidth:1,borderColor:'#fff'}]},
     options:{
       responsive:true, maintainAspectRatio:false,
-      layout:{padding:16},
+      layout:{padding:20},
       plugins:{
-        legend:{position:'bottom',labels:{boxWidth:10,padding:6,font:{size:10}}},
+        legend:makeLegendBottom(apColors),
         tooltip:{...TS,callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0); return ` ${c.label}: ${(c.parsed/t*100).toFixed(1)}% (${fmtN(c.parsed)} 人次)`;}}},
         ...(hasDL?{datalabels:{
+          clamp:true,
           formatter:(v,ctx)=>{
             const t=ctx.dataset.data.reduce((a,b)=>a+b,0);
             const p=v/t*100;
             const name=ctx.chart.data.labels[ctx.dataIndex];
-            if(p>=8) return name+'\n'+p.toFixed(1)+'%';
-            if(p>=3) return p.toFixed(1)+'%';
-            return '';
+            if(p>=8)  return name+'\n'+p.toFixed(1)+'%'; // 大切片：名稱+%
+            if(p>=3)  return p.toFixed(1)+'%';            // 中切片：只%
+            return '';                                     // 小切片：不顯示
           },
-          color:'#fff', font:{size:10,weight:'700'}, textAlign:'center',
+          color:'#fff', font:{size:11,weight:'700'}, textAlign:'center',
+          textStrokeColor:'rgba(0,0,0,0.35)', textStrokeWidth:2,
         }}:{})
       }
     }
   });
 
-  // --- Route pie ---
+  // 航線別圓餅
   const rtD=[
     rows.reduce((s,r)=>s+(r['國際航線_不含兩岸（人次）']||0),0),
     rows.reduce((s,r)=>s+(r['兩岸航線（人次）']||0),0),
     rows.reduce((s,r)=>s+(r['國內航線（人次）']||0),0),
     rows.reduce((s,r)=>s+(r['過境（人次）']||0),0),
   ];
-  const rtL=['國際航線\n（不含兩岸）','兩岸航線','國內航線','過境'];
+  const rtL=['國際航線（不含兩岸）','兩岸航線','國內航線','過境'];
+  const rtColors=['#1A4A70','#C08E66','#C86647','#8AAFBE'];
 
   CHARTS.pieRoute=new Chart(getOrDestroy('chart-pie-route'),{
     type:'pie',
     plugins:hasDL?[ChartDataLabels]:[],
-    data:{labels:rtL,datasets:[{data:rtD,backgroundColor:['#3b82f6','#f59e0b','#22c55e','#a855f7'],borderWidth:1,borderColor:'#fff'}]},
+    data:{labels:rtL,datasets:[{data:rtD,backgroundColor:rtColors,borderWidth:1,borderColor:'#fff'}]},
     options:{
       responsive:true, maintainAspectRatio:false,
       layout:{padding:20},
       plugins:{
-        legend:{position:'bottom',labels:{boxWidth:10,padding:8,font:{size:11}}},
+        legend:makeLegendBottom(rtColors),
         tooltip:{...TS,callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0); return ` ${c.label}: ${(c.parsed/t*100).toFixed(1)}% (${fmtN(c.parsed)} 人次)`;}}},
         ...(hasDL?{datalabels:{
+          clamp:true,
           formatter:(v,ctx)=>{
             const t=ctx.dataset.data.reduce((a,b)=>a+b,0);
             const p=v/t*100;
-            return ctx.chart.data.labels[ctx.dataIndex]+'\n'+p.toFixed(1)+'%';
+            const name=ctx.chart.data.labels[ctx.dataIndex];
+            if(p<2)  return '';                         // 過境0.3% 不顯示
+            if(p>=15) return name+'\n'+p.toFixed(1)+'%';
+            return p.toFixed(1)+'%';
           },
           color:'#fff', font:{size:12,weight:'700'}, textAlign:'center',
+          textStrokeColor:'rgba(0,0,0,0.35)', textStrokeWidth:2,
         }}:{})
       }
     }
@@ -764,7 +841,7 @@ function renderFltTrend() {
   const t05=t05BySheet('t05_flt');
   const routes=['國際航線（含港澳）','兩岸航線','國內航線'];
   const rl={'國際航線（含港澳）':'國際航線（不含兩岸）','兩岸航線':'兩岸航線','國內航線':'國內航線'};
-  const colors=['#3b82f6','#f59e0b','#22c55e'];
+  const colors=['#1A4A70','#C08E66','#C86647'];
   CHARTS.fltTrend=new Chart(getOrDestroy('chart-flt-trend'),{
     type:'line',
     data:{labels:YEARS,datasets:routes.map((r,i)=>({
@@ -787,7 +864,7 @@ function renderCgoTrend() {
   const t05=t05BySheet('t05_cgo');
   const routes=['國際航線（含港澳）','兩岸航線','國內航線','轉口'];
   const rl={'國際航線（含港澳）':'國際航線（不含兩岸）','兩岸航線':'兩岸航線','國內航線':'國內航線','轉口':'轉口'};
-  const colors=['#3b82f6','#f59e0b','#22c55e','#f43f5e'];
+  const colors=['#1A4A70','#C08E66','#C86647','#8AAFBE'];
   CHARTS.cgoTrend=new Chart(getOrDestroy('chart-cgo-trend'),{
     type:'bar',
     data:{labels:YEARS,datasets:routes.map((r,i)=>({
@@ -832,11 +909,11 @@ function renderAirportTable(year=2025) {
 // ═══════════════════════════════════════════
 function buildAirportSelect() {
   const airports=[...new Set(DB.motc.map(r=>r['機場名稱']).filter(Boolean))];
+  // 依2025年（民國114年）總旅客量高到低排列
   airports.sort((a,b)=>{
-    const order=['桃園國際機場','高雄國際機場','臺北松山機場','臺中機場'];
-    const ai=order.indexOf(a),bi=order.indexOf(b);
-    if(ai>=0&&bi>=0) return ai-bi; if(ai>=0) return -1; if(bi>=0) return 1;
-    return a.localeCompare(b,'zh-TW');
+    const aRow=DB.motc.find(r=>r['機場名稱']===a&&r['年份']==114);
+    const bRow=DB.motc.find(r=>r['機場名稱']===b&&r['年份']==114);
+    return (bRow?.['總計（人次）']||0)-(aRow?.['總計（人次）']||0);
   });
   const sel=document.getElementById('single-airport-select');
   sel.innerHTML='';
@@ -882,16 +959,16 @@ function renderSingleAirport(airportMotc) {
         backgroundColor:'rgba(150,150,150,0.45)', borderWidth:0, yAxisID:'y', order:1},
       {label:'國際航線（不含兩岸）',type:'line',
         data:YEARS.map(y=>{const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['國際航線_不含兩岸（人次）']||0):null;}),
-        borderColor:'#3b82f6',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.4,yAxisID:'y',spanGaps:true,order:0},
+        borderColor:'#1A4A70',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.4,yAxisID:'y',spanGaps:true,order:0},
       {label:'兩岸航線',type:'line',
         data:YEARS.map(y=>{const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['兩岸航線（人次）']||0):null;}),
-        borderColor:'#f59e0b',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.4,yAxisID:'y',spanGaps:true,order:0},
+        borderColor:'#C08E66',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.4,yAxisID:'y',spanGaps:true,order:0},
       {label:'國內航線',type:'line',
         data:YEARS.map(y=>{const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['國內航線（人次）']||0):null;}),
-        borderColor:'#22c55e',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.4,yAxisID:'y',spanGaps:true,order:0},
+        borderColor:'#C86647',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.4,yAxisID:'y',spanGaps:true,order:0},
       {label:'過境',type:'line',
         data:YEARS.map(y=>{const r=rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['過境（人次）']||0):null;}),
-        borderColor:'#a855f7',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.4,yAxisID:'y',spanGaps:true,order:0},
+        borderColor:'#8AAFBE',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.4,yAxisID:'y',spanGaps:true,order:0},
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
@@ -903,7 +980,7 @@ function renderSingleAirport(airportMotc) {
   // 起降架次
   CHARTS.apFlt=new Chart(getOrDestroy('chart-ap-flt'),{
     type:'bar',
-    data:{labels:YEARS,datasets:[{label:'起降架次',backgroundColor:'#2563eb',borderRadius:3,
+    data:{labels:YEARS,datasets:[{label:'起降架次',backgroundColor:'#7192A1',borderRadius:3,
       data:YEARS.map(y=>{const r=t03rows.find(d=>rocToAd(d['年份'])==y); return r?r['起降架次（次）']||0:null;})}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{...TS,callbacks:{label:c=>` 起降架次：${fmtN(c.parsed.y)} 次`}}},
@@ -915,7 +992,7 @@ function renderSingleAirport(airportMotc) {
   if(isFreight){
     CHARTS.apCgo=new Chart(getOrDestroy('chart-ap-cgo'),{
       type:'bar',
-      data:{labels:YEARS,datasets:[{label:'貨運噸數',backgroundColor:'#059669',borderRadius:3,
+      data:{labels:YEARS,datasets:[{label:'貨運噸數',backgroundColor:'#C08E66',borderRadius:3,
         data:YEARS.map(y=>{const r=t03rows.find(d=>rocToAd(d['年份'])==y); return r?toWan(r['貨運噸數（公噸）']||0):null;})}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{...TS,callbacks:{label:c=>` 貨運量：${fmtN(c.parsed.y,2)} 萬公噸`}}},
@@ -924,18 +1001,48 @@ function renderSingleAirport(airportMotc) {
     });
   }
 
-  // 圓餅 (2025)
+  // 圓餅 (2025) — 與首頁圓餅相同邏輯：底部並排圖例含佔比、切片≥3%標示
   const hasDL=!!window.ChartDataLabels;
+  const apPieColors=['#1A4A70','#C08E66','#C86647','#8AAFBE'];
+  const apPieLabels=['國際（不含兩岸）','兩岸航線','國內航線','過境'];
   if(r2025){
     const pd=[r2025['國際航線_不含兩岸（人次）']||0,r2025['兩岸航線（人次）']||0,r2025['國內航線（人次）']||0,r2025['過境（人次）']||0];
     CHARTS.apPie=new Chart(getOrDestroy('chart-ap-pie'),{
       type:'pie', plugins:hasDL?[ChartDataLabels]:[],
-      data:{labels:['國際（不含兩岸）','兩岸航線','國內航線','過境'],datasets:[{data:pd,backgroundColor:['#3b82f6','#f59e0b','#22c55e','#a855f7'],borderWidth:1,borderColor:'#fff'}]},
-      options:{responsive:true,maintainAspectRatio:false,layout:{padding:16},
+      data:{labels:apPieLabels,datasets:[{data:pd,backgroundColor:apPieColors,borderWidth:1,borderColor:'#fff'}]},
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:20},
         plugins:{
-          legend:{position:'bottom',labels:{boxWidth:10,padding:8,font:{size:11}}},
+          legend:{
+            position:'bottom',
+            labels:{
+              generateLabels(chart){
+                const ds=chart.data.datasets[0];
+                const total=ds.data.reduce((a,b)=>(a||0)+(b||0),0);
+                return chart.data.labels.map((lbl,i)=>{
+                  const v=ds.data[i]||0;
+                  const pct=total>0?(v/total*100).toFixed(1):'0.0';
+                  return{ text:`${lbl} ${pct}%`, fillStyle:apPieColors[i],
+                    strokeStyle:'#fff', lineWidth:1,
+                    hidden:!chart.getDataVisibility(i), index:i };
+                });
+              },
+              boxWidth:12, padding:14, font:{size:13},
+            }
+          },
           tooltip:{...TS,callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0); return t>0?` ${c.label}: ${(c.parsed/t*100).toFixed(1)}% (${fmtN(c.parsed)} 人次)`:` ${c.label}: 0`;}}},
-          ...(hasDL?{datalabels:{formatter:(v,ctx)=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);const p=v/t*100; return ctx.chart.data.labels[ctx.dataIndex]+'\n'+p.toFixed(1)+'%';},color:'#fff',font:{size:11,weight:'700'},textAlign:'center'}}:{})
+          ...(hasDL?{datalabels:{
+            clamp:true,
+            formatter:(v,ctx)=>{
+              const t=ctx.dataset.data.reduce((a,b)=>a+b,0);
+              const p=v/t*100;
+              const name=ctx.chart.data.labels[ctx.dataIndex];
+              if(p<2)   return '';
+              if(p>=15) return name+'\n'+p.toFixed(1)+'%';
+              return p.toFixed(1)+'%';
+            },
+            color:'#fff', font:{size:11,weight:'700'}, textAlign:'center',
+            textStrokeColor:'rgba(0,0,0,0.35)', textStrokeWidth:2,
+          }}:{})
         }
       }
     });
@@ -952,12 +1059,12 @@ function renderSingleAirport(airportMotc) {
     type:'line',
     data:{labels:YEARS,datasets:[{
       label:'YoY (%)', data:yoyData,
-      borderColor:'#1d4ed8', backgroundColor:'rgba(29,78,216,0.08)',
+      borderColor:'#7192A1', backgroundColor:'rgba(113,146,161,0.1)',
       fill:true, borderWidth:2,
-      pointRadius:4, tension:0.15,   /* 弧度減小 */
+      pointRadius:4, tension:0.15,
       spanGaps:true,
-      pointBackgroundColor:'#1d4ed8', /* 統一顏色，不分正負 */
-      pointBorderColor:'#1d4ed8',
+      pointBackgroundColor:'#C86647',  /* 鐵鏽橘強調數據點 */
+      pointBorderColor:'#C86647',
     }]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{...TS,callbacks:{label:c=>c.parsed.y!=null?` YoY：${c.parsed.y>0?'+':''}${fmtN(c.parsed.y,1)}%`:' —'}}},
