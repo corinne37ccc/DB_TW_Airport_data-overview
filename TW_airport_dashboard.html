@@ -110,8 +110,7 @@ select.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(1
 .table-scroll{overflow:auto;max-height:480px;border-radius:var(--radius);border:1px solid var(--border)}
 .data-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
 .data-table thead{position:sticky;top:0;z-index:3}
-.data-table th{background:var(--primary-dark);color:#ffffff;padding:10px 14px;text-align:left;font-weight:600;font-size:12px;white-space:nowrap}
-.data-table th:not(:first-child){text-align:right}
+.data-table th{background:var(--primary-dark);color:#ffffff;padding:10px 14px;text-align:center;font-weight:600;font-size:12px;white-space:nowrap}
 .data-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
 .data-table td:not(:first-child){text-align:right}
 .data-table tr:hover td{background:var(--primary-bg)}
@@ -1064,10 +1063,11 @@ function renderSingleAirport(airportMotc) {
       label:'YoY (%)', data:yoyData,
       borderColor:'#7192A1', backgroundColor:'rgba(113,146,161,0.1)',
       fill:true, borderWidth:2,
-      pointRadius:4, tension:0.15,
+      pointRadius:5, tension:0.15,
       spanGaps:true,
-      pointBackgroundColor:'#C86647',  /* 鐵鏽橘強調數據點 */
-      pointBorderColor:'#C86647',
+      pointBackgroundColor:'#ffffff',
+      pointBorderColor:'#042842',
+      pointBorderWidth:2,
     }]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{...TS,callbacks:{label:c=>c.parsed.y!=null?` YoY：${c.parsed.y>0?'+':''}${fmtN(c.parsed.y,1)}%`:' —'}}},
