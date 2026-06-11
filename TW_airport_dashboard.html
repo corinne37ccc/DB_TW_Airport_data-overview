@@ -48,9 +48,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 /* HEADER */
 #app-header{background:linear-gradient(135deg,#042842 0%,#1A3E54 55%,#7192A1 100%);color:#fff;padding:0 24px;box-shadow:0 2px 10px rgba(4,40,66,.35);position:sticky;top:0;z-index:100}
 .header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;height:72px}
-.header-title h1{font-size:25px;font-weight:700;letter-spacing:.5px}
-.header-title span{font-size:12px;opacity:.65;display:none;margin-top:2px}
-@media(min-width:600px){.header-title span{display:block}}
+.header-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.header-title h1{font-size:25px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.header-title span{font-size:12px;opacity:.65;white-space:nowrap}
 
 /* NAV */
 #nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:72px;z-index:99;box-shadow:var(--shadow-sm)}
@@ -67,8 +67,8 @@ main{max-width:1400px;margin:0 auto;padding:24px 20px;display:flex;flex-directio
 /* CARD */
 .card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border);padding:20px}
 .card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.card-title{font-size:28px;font-weight:700;color:var(--primary-dark);line-height:1.3}
-.card-subtitle{font-size:12px;color:var(--text-3);margin-top:4px}
+.card-title{font-size:28px;font-weight:700;color:var(--primary-dark);line-height:1.3;text-align:center;width:100%}
+.card-subtitle{font-size:12px;color:var(--text-3);margin-top:4px;text-align:center}
 
 /* SUMMARY CARDS */
 .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -77,11 +77,11 @@ main{max-width:1400px;margin:0 auto;padding:24px 20px;display:flex;flex-directio
 .summary-card:nth-child(1)::before{background:linear-gradient(90deg,#1A5C8E,#4D96B8)}
 .summary-card:nth-child(2)::before{background:linear-gradient(90deg,#3A82A8,#7FB8D0)}
 .summary-card:nth-child(3)::before{background:linear-gradient(90deg,#6AAEC8,#A8D4E4)}
-.summary-label{font-size:24px;font-weight:600;color:var(--text-2);margin-bottom:12px;line-height:1.3}
-.summary-value-wrap{text-align:right}
-.summary-number{font-size:32px;font-weight:700;color:var(--primary-dark);display:block;font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
-.summary-unit{font-size:14px;color:var(--text-2);display:block;margin-top:2px}
-.summary-sub{font-size:13px;color:var(--accent-rust);margin-top:8px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.summary-label{font-size:24px;font-weight:600;color:var(--text-2);margin-bottom:12px;line-height:1.3;text-align:center}
+.summary-value-wrap{text-align:center}
+.summary-number{font-size:32px;font-weight:700;color:var(--primary-dark);display:inline;font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
+.summary-unit{font-size:14px;color:var(--text-2);display:inline;margin-left:4px}
+.summary-sub{font-size:13px;color:var(--accent-rust);margin-top:8px;text-align:center;font-variant-numeric:tabular-nums;font-weight:600}
 
 /* GRID */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
@@ -110,9 +110,9 @@ select.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(1
 .table-scroll{overflow:auto;max-height:480px;border-radius:var(--radius);border:1px solid var(--border)}
 .data-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
 .data-table thead{position:sticky;top:0;z-index:3}
-.data-table th{background:var(--primary-dark);color:#EADFCB;padding:10px 14px;text-align:left;font-weight:600;font-size:12px}
+.data-table th{background:var(--primary-dark);color:#ffffff;padding:10px 14px;text-align:left;font-weight:600;font-size:12px;white-space:nowrap}
 .data-table th:not(:first-child){text-align:right}
-.data-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
 .data-table td:not(:first-child){text-align:right}
 .data-table tr:hover td{background:var(--primary-bg)}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
@@ -320,9 +320,9 @@ footer{text-align:center;padding:20px 24px;font-size:12px;color:var(--text-3);bo
       <table class="data-table" id="airport-table">
         <thead>
           <tr>
-            <th>機場名稱</th><th>類型</th><th>總旅客量</th>
-            <th>國際線合計</th><th>國際線（不含兩岸）</th>
-            <th>兩岸航線</th><th>過境</th><th>國內航線</th>
+            <th>名稱</th><th>類型</th><th>總旅客量（人次）</th>
+            <th>國際線合計（人次）</th><th>國際線 不含兩岸（人次）</th>
+            <th>兩岸航線（人次）</th><th>過境（人次）</th><th>國內航線（人次）</th>
           </tr>
         </thead>
         <tbody id="airport-table-body"></tbody>
@@ -579,9 +579,9 @@ function renderSummaryCards() {
   const sum=(yr,col)=>DB.t03.filter(r=>r['年份']==yr).reduce((s,r)=>s+(r[col]||0),0);
   const pax14=sum(114,'旅客人數合計（人次）'), flt14=sum(114,'起降架次（次）'), cgo14=sum(114,'貨運噸數（公噸）');
   const pax13=sum(113,'旅客人數合計（人次）'), flt13=sum(113,'起降架次（次）'), cgo13=sum(113,'貨運噸數（公噸）');
-  document.getElementById('card-pax').textContent=fmtN(toWan(pax14),1);
+  document.getElementById('card-pax').textContent=fmtN(toWan(pax14),0);
   document.getElementById('card-flt').textContent=fmtN(flt14);
-  document.getElementById('card-cgo').textContent=fmtN(toWan(cgo14),2);
+  document.getElementById('card-cgo').textContent=fmtN(toWan(cgo14),0);
   document.getElementById('card-pax-sub').textContent=yoyStr(pax14,pax13);
   document.getElementById('card-flt-sub').textContent=yoyStr(flt14,flt13);
   document.getElementById('card-cgo-sub').textContent=yoyStr(cgo14,cgo13);
@@ -945,11 +945,11 @@ function renderSingleAirport(airportMotc) {
   // 貨運 YoY
   const cgoYoy=(isFreight&&t3_2025&&t3_2024&&t3_2024['貨運噸數（公噸）'])?yoyStr(t3_2025['貨運噸數（公噸）']||0,t3_2024['貨運噸數（公噸）']||0):'—';
 
-  document.getElementById('ap-card-pax').textContent=r2025?fmtN(toWan(r2025['總計（人次）']||0),1):'—';
+  document.getElementById('ap-card-pax').textContent=r2025?fmtN(toWan(r2025['總計（人次）']||0),0):'—';
   document.getElementById('ap-card-pax-sub').textContent=paxYoy;
   document.getElementById('ap-card-flt').textContent=t3_2025?fmtN(t3_2025['起降架次（次）']||0):'—';
   document.getElementById('ap-card-flt-sub').textContent=fltYoy;
-  document.getElementById('ap-card-cgo').textContent=(t3_2025&&isFreight)?fmtN(toWan(t3_2025['貨運噸數（公噸）']||0),2):(isFreight?'—':'不適用');
+  document.getElementById('ap-card-cgo').textContent=(t3_2025&&isFreight)?fmtN(toWan(t3_2025['貨運噸數（公噸）']||0),0):(isFreight?'—':'不適用');
   document.getElementById('ap-card-cgo-sub').textContent=isFreight?cgoYoy:'此機場無貨運資料';
   document.getElementById('ap-cgo-card').style.display=isFreight?'':'none';
 
@@ -1117,15 +1117,24 @@ function switchToPage(pageId) {
 // ═══════════════════════════════════════════
 // NAV + EVENTS
 // ═══════════════════════════════════════════
+// 追蹤各機場頁是否已在可見狀態下渲染過
+let airportsRenderedVisible = false;
+
 document.querySelectorAll('.nav-tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
     const pageId = tab.dataset.page;
     switchToPage(pageId);
-    // 切換至各機場資訊時，保留目前選擇的機場到網址
+
     if (pageId === 'airports') {
       const sel = document.getElementById('single-airport-select');
       const ap = sel?.value || defaultAirport;
       setHash('airports', ap !== defaultAirport ? { airport: ap } : {});
+
+      // 若之前是在頁面隱藏時渲染的（桃園預設），切換過來時重新渲染確保尺寸正確
+      if (!airportsRenderedVisible) {
+        airportsRenderedVisible = true;
+        setTimeout(() => renderSingleAirport(ap), 30);
+      }
     } else {
       setHash('home');
     }
@@ -1167,18 +1176,18 @@ async function init() {
     const targetAirport = params['airport'] || defaultAirport;
 
     if (page === 'airports') {
-      // 切換到各機場資訊頁
+      // 直接載入機場頁：頁面可見，渲染尺寸正確，標記為已正確渲染
       switchToPage('airports');
-      // 若網址有指定機場，設定選單
       const sel = document.getElementById('single-airport-select');
       if (sel && targetAirport) {
-        // 等 buildAirportSelect 完成後設定值
         const matchOption = [...sel.options].find(o => o.value === targetAirport);
         if (matchOption) sel.value = targetAirport;
       }
       renderSingleAirport(targetAirport);
+      airportsRenderedVisible = true;
     } else {
       switchToPage('home');
+      // 首頁載入時頁面隱藏，先做一次渲染備用，但等切換過去時會重新渲染
       renderSingleAirport(defaultAirport);
       if (!window.location.hash) setHash('home');
     }
